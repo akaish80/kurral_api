@@ -1,0 +1,16 @@
+service: kurral-api
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+
+functions:
+  createKurral:
+    handler: src/handler.create
+  readKurral:
+    handler: src/handler.getKurral
+    
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-plugin-include-dependencies
