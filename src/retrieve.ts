@@ -4,7 +4,7 @@ import { success, ThirukkuralEvaluation, populateThirukkuralEvaluationnModel } f
 export const thirukurralTableName: string = process.env['THIRUKKURAL_TABLE_NAME'] || '';
 const dynamoDb = new DynamoDB.DocumentClient();
 
-export async function getKurralJSON(kurralId: string) {
+export async function getKurralJSON(kurralId: number) {
   let kurral: ThirukkuralEvaluation = await getKurralByID(kurralId);
   if (kurral) {
    return success(JSON.stringify(kurral));
@@ -13,7 +13,7 @@ export async function getKurralJSON(kurralId: string) {
   return success('{}');
 }
 
-async function getKurralByID(id: string) {
+async function getKurralByID(id: number) {
  let kurral: ThirukkuralEvaluation;
  let getKurralQuery = getAllKurral(id);
  try {
@@ -29,7 +29,7 @@ async function getKurralByID(id: string) {
  }
 }
 
-function getAllKurral(id: string) {
+function getAllKurral(id: number) {
  return {
      TableName: thirukurralTableName,
      KeyConditionExpression: "#id = :id",

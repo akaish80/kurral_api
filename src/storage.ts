@@ -25,7 +25,7 @@ export async function createKurral( kurral: ThirukkuralEvaluation[]) {
 
 export async function readAndDeleteKurral(thirukkuralEvaluation: ThirukkuralEvaluation[]) {
  const start = new Date().getTime();
- let allTierQry = getAllKurral(thirukkuralEvaluation[0].id || '');
+ let allTierQry = getAllKurral(thirukkuralEvaluation[0].id || -1);
  let thrikurralList: ThirukkuralEvaluation[] = [];
  try {
      let kurralResults = await dynamoDb.query(allTierQry).promise();
@@ -48,7 +48,7 @@ export async function readAndDeleteKurral(thirukkuralEvaluation: ThirukkuralEval
  }
 }
 
-function getAllKurral(id: string) {
+function getAllKurral(id: number) {
  return {
      TableName: thirukurralTableName,
      KeyConditionExpression: "#id = :id",
@@ -64,7 +64,7 @@ function getAllKurral(id: string) {
 @table(thirukurralTableName)
 export class ThirukkuralEvaluation {
  @hashKey()
- id: string | undefined;
+ id: number | undefined;
  @attribute()
  Line1: string | undefined;
  @attribute()

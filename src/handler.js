@@ -44,7 +44,6 @@ function create(event) {
         return __generator(this, function (_a) {
             kurralJson = event.body ? JSON.parse(event.body.toString()) : undefined;
             thrikurralList = [];
-            console.log(kurralJson);
             if (kurralJson && kurralJson && kurralJson.length) {
                 kurralJson.forEach(function (kurral) {
                     thrikurralList.push(storage_1.populateThirukkuralEvaluationnModel(kurral));
@@ -69,7 +68,7 @@ function getKurral(event) {
     return __awaiter(this, void 0, void 0, function () {
         var kurralJson;
         return __generator(this, function (_a) {
-            kurralJson = event.queryStringParameters ? event.queryStringParameters.id : undefined;
+            kurralJson = event.queryStringParameters ? Number(event.queryStringParameters.id) : -1;
             if (kurralJson && Object.keys(kurralJson).length > 0) {
                 return [2 /*return*/, retrieve_1.getKurralJSON(kurralJson)];
             }

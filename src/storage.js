@@ -123,7 +123,7 @@ function readAndDeleteKurral(thirukkuralEvaluation) {
             switch (_d.label) {
                 case 0:
                     start = new Date().getTime();
-                    allTierQry = getAllKurral(thirukkuralEvaluation[0].id || '');
+                    allTierQry = getAllKurral(thirukkuralEvaluation[0].id || -1);
                     thrikurralList = [];
                     _d.label = 1;
                 case 1:
@@ -195,7 +195,7 @@ var ThirukkuralEvaluation = /** @class */ (function () {
     }
     __decorate([
         dynamodb_data_mapper_annotations_1.hashKey(),
-        __metadata("design:type", String)
+        __metadata("design:type", Number)
     ], ThirukkuralEvaluation.prototype, "id");
     __decorate([
         dynamodb_data_mapper_annotations_1.attribute(),

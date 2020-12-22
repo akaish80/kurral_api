@@ -5,7 +5,6 @@ import { getKurralJSON } from './retrieve';
 export async function create(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   const kurralJson = event.body ? JSON.parse(event.body.toString()) : undefined;
   let thrikurralList: ThirukkuralEvaluation [] = [];
-console.log(kurralJson);
 
   if (kurralJson && kurralJson && kurralJson.length) {
     kurralJson.forEach((kurral: any) => {
@@ -24,7 +23,7 @@ console.log(kurralJson);
 
 export async function getKurral(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
 
-  const kurralJson = event.queryStringParameters ? event.queryStringParameters.id : undefined;
+  const kurralJson:number = event.queryStringParameters ? Number(event.queryStringParameters.id) : -1;
 
   if (kurralJson && Object.keys(kurralJson).length > 0) {
     return getKurralJSON(kurralJson);
