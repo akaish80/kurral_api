@@ -25,7 +25,8 @@ export async function getKurral(event: APIGatewayProxyEvent): Promise<APIGateway
 
   const kurralJson:number = event.queryStringParameters ? Number(event.queryStringParameters.id) : -1;
 
-  if (kurralJson && Object.keys(kurralJson).length > 0) {
+  console.log(`event_type="API", action="THIRUKURRAL_READ","status="Failed","msg"=" Get Kurral with no JSON.${kurralJson}"`);
+  if (kurralJson != -1) {
     return getKurralJSON(kurralJson);
   } else {
     console.log('event_type="API", action="THIRUKURRAL_READ","status="Failed","msg"=" Get Kurral with no JSON."');

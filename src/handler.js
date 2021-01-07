@@ -69,7 +69,8 @@ function getKurral(event) {
         var kurralJson;
         return __generator(this, function (_a) {
             kurralJson = event.queryStringParameters ? Number(event.queryStringParameters.id) : -1;
-            if (kurralJson && Object.keys(kurralJson).length > 0) {
+            console.log("event_type=\"API\", action=\"THIRUKURRAL_READ\",\"status=\"Failed\",\"msg\"=\" Get Kurral with no JSON." + kurralJson + "\"");
+            if (kurralJson != -1) {
                 return [2 /*return*/, retrieve_1.getKurralJSON(kurralJson)];
             }
             else {
