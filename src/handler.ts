@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { createKurral, ThirukkuralEvaluation, populateThirukkuralEvaluationnModel, error } from './storage';
-import { getKurralJSON } from './retrieve';
+import { getKurralJSON, getAllAdikaramJSON } from './retrieve';
 
 export async function create(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
   const kurralJson = event.body ? JSON.parse(event.body.toString()) : undefined;
@@ -32,4 +32,15 @@ export async function getKurral(event: APIGatewayProxyEvent): Promise<APIGateway
     console.log('event_type="API", action="THIRUKURRAL_READ","status="Failed","msg"=" Get Kurral with no JSON."');
     return error(400, "Invalid Request. Get Kurral request is empty");
   }
+}
+
+export async function getAllAdikaram(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+
+  console.log(`event_type="API", action="THIRUKURRAL_READ","status="Success","msg"=" Get Kurral with no JSON."`);
+  return getAllAdikaramJSON()
+  // if (kurralList.length > 0){
+  //   return kurralList
+  // } else {
+  //   return error(400, "Invalid Request. Get Kurral request is empty");
+  // }
 }

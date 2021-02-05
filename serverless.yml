@@ -11,6 +11,7 @@ provider:
   stage: 'prod'
   environment:
     THIRUKKURAL_TABLE_NAME: ${self:custom.dynamodb.THIRUKKURAL_TABLE_NAME}
+    ADIKARAM_TABLE_NAME: ${self:custom.dynamodb.ADIKARAM_TABLE_NAME}
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -45,10 +46,21 @@ functions:
           method: GET
           cors: true
           private: true
+  getAdikaram:
+    handler: src/handler.getAllAdikaram
+    events:
+      - http:
+          path: /thirukurral/adikaram
+          method: GET
+          cors: true
+          private: true
 
 custom:
   dynamodb:
     THIRUKKURAL_TABLE_NAME: thirukurral_data
+    ADIKARAM_TABLE_NAME: adikaram_master
+  serverless-offline:
+    httpPort: 4000
 
-plugins:
-  - serverless-offline
+# plugins:
+#   - serverless-offline

@@ -82,4 +82,19 @@ function getKurral(event) {
     });
 }
 exports.getKurral = getKurral;
+function getAllAdikaram(event) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            console.log("event_type=\"API\", action=\"THIRUKURRAL_READ\",\"status=\"Success\",\"msg\"=\" Get Kurral with no JSON.\"");
+            return [2 /*return*/, retrieve_1.getAllAdikaramJSON()
+                // if (kurralList.length > 0){
+                //   return kurralList
+                // } else {
+                //   return error(400, "Invalid Request. Get Kurral request is empty");
+                // }
+            ];
+        });
+    });
+}
+exports.getAllAdikaram = getAllAdikaram;
 //# sourceMappingURL=handler.js.map

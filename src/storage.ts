@@ -106,12 +106,12 @@ export class ThirukkuralEvaluation {
 }
 
 export function populateThirukkuralEvaluationnModel(kurralJson: any) {
-    console.log(kurralJson.mv);
+    console.log(kurralJson.adikaram_name);
     
  let kurral = new ThirukkuralEvaluation();
  kurral.id = kurralJson.id;
- kurral.Line1 = kurralJson.line1;
- kurral.Line2 = kurralJson.line2;
+ kurral.Line1 = kurralJson.Line1;
+ kurral.Line2 = kurralJson.Line2;
  kurral.Translation = kurralJson.translation;
  kurral.explanation = kurralJson.explanation;
  kurral.mv = kurralJson.mv;
@@ -130,7 +130,7 @@ export function populateThirukkuralEvaluationnModel(kurralJson: any) {
  kurral.adikaram_name= kurralJson.adikaram_name;
  kurral.adikaram_transliteration= kurralJson.adikaram_transliteration;
  kurral.adikaram_translation= kurralJson.adikaram_translation;
- console.log(`Arun ${JSON.stringify(kurral)}`);
+
  
  return kurral;
 }
