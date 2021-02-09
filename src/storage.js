@@ -52,6 +52,7 @@ var __asyncValues = (this && this.__asyncValues) || function (o) {
     function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
 };
 exports.__esModule = true;
+exports.error = exports.success = exports.populateThirukkuralEvaluationnModel = exports.ThirukkuralEvaluation = exports.readAndDeleteKurral = exports.createKurral = exports.thirukurralTableName = void 0;
 var aws_sdk_1 = require("aws-sdk");
 var dynamodb_data_mapper_1 = require("@aws/dynamodb-data-mapper");
 var dynamodb_data_mapper_annotations_1 = require("@aws/dynamodb-data-mapper-annotations");
@@ -280,7 +281,7 @@ var ThirukkuralEvaluation = /** @class */ (function () {
 }());
 exports.ThirukkuralEvaluation = ThirukkuralEvaluation;
 function populateThirukkuralEvaluationnModel(kurralJson) {
-    console.log(kurralJson.adikaram_name);
+    // console.log(kurralJson.adikaram_name);
     var kurral = new ThirukkuralEvaluation();
     kurral.id = kurralJson.id;
     kurral.Line1 = kurralJson.Line1;

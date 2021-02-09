@@ -106,7 +106,7 @@ export class ThirukkuralEvaluation {
 }
 
 export function populateThirukkuralEvaluationnModel(kurralJson: any) {
-    console.log(kurralJson.adikaram_name);
+    // console.log(kurralJson.adikaram_name);
     
  let kurral = new ThirukkuralEvaluation();
  kurral.id = kurralJson.id;

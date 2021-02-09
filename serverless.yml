@@ -54,7 +54,14 @@ functions:
           method: GET
           cors: true
           private: true
-
+  getKurralBasedOnIndex:
+    handler: src/handler.getKurralBasedOnIndex
+    events:
+      - http:
+          path: /thirukurral/getKurralListByAdikarm
+          method: GET
+          cors: true
+          private: true
 custom:
   dynamodb:
     THIRUKKURAL_TABLE_NAME: thirukurral_data

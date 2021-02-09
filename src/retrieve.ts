@@ -14,61 +14,25 @@ export async function getKurralJSON(kurralId: number) {
   return success('{}');
 }
 
+const getSortedList = (Items: any[]) => {
+    return Items.sort((a, b) => {
+        return +a.id - +b.id;
+    });
+}
+
 export async function getAllAdikaramJSON() {
-    // let kurral: ThirukkuralEvaluation = await getKurralByID();
-    console.error('Arun is here');
-    
-    let kurral: ThirukkuralEvaluation;
-    let kurralList: String[] = new Array();
     
     try {
         let kurralResults = await dynamoDb.scan({
             TableName: adikaramTableName}).promise();
         let kurralItem = kurralResults && kurralResults.Items;
+        let sortedItems;
         if (kurralItem) {
-            // kurral = populateThirukkuralEvaluationnModel(kurralItem);
-            console.log(` Kurral ${ kurralResults.Items.length}`);
-
             const { Items } = kurralResults;
-            const sortedItems = Items.sort((a, b) => {
-                // console.log('a ' + a + ' b ' + b);
-                // if (a === "K" || b === "N") {
-                //     return -1;
-                // }
-                // if (a === "N" || b === "K") {
-                //     return 1;
-                // }
-                return +a.id - +b.id;
-            });
-            
-            console.log(sortedItems);
-
-            
-            for (let index = 0; index < sortedItems.length; index++) {
-                const element = sortedItems[index];
-                kurralList.push(element.adikaram)
-                // const kuralData =   populateThirukkuralEvaluationnModel(element);
-                // // if (kurralList.find)
-                // if (kurralList.length > 0){
-                //     const kurraalObj = {adikaram: ""};
-                //     console.log(` kuralData.adikaram_name -> ${ kuralData.adikaram_name } `);
-                //     const found = kurralList.findIndex(element => element === kuralData.adikaram_name);
-
-                //     if (found === -1){
-                //         // kurraalObj.adikaram = kuralData.adikaram_name.toString();
-                //         kurralList.push(kuralData.adikaram_name.toString())
-                //         console.log(` kurralList -> ${ kurralList.length } `);
-                //     }
-                // } else {
-                //     kurralList.push(kuralData.adikaram_name)
-                //     console.log(` kurralList -> ${ kurralList.length } `);
-                // }
-            }
-            console.log(kurralList);
-            
+            sortedItems = getSortedList(Items);
         }
-        if (kurralList.length > 0) {
-         return success(JSON.stringify(kurralList));
+        if (sortedItems.length > 0) {
+         return success(JSON.stringify(sortedItems));
         }
         console.error('No Kurral By ID Data found');
         return success('{}');
@@ -78,6 +42,49 @@ export async function getAllAdikaramJSON() {
         return success('{}');
     }
 }
+
+const scanAll = async (params: any) => {
+    let all:any = [];
+    while (true) {
+        let data:any = await new Promise((resolve, reject) => {
+            dynamoDb.scan(params, function (err:any, data:any) {
+                if (err)
+                    reject(err);
+                else
+                    resolve(data);
+            });
+        });
+        all = all.concat(data.Items);
+        if (data.LastEvaluatedKey)
+            params.ExclusiveStartKey = data.LastEvaluatedKey;
+        else
+            break;
+    }
+    return all;
+};
+
+
+
+export async function getKurralListByAdikarm(adikaram_name:String) {
+    let getKurralQueryForScan = getKurral(adikaram_name);
+
+    let kurralItemList = await scanAll(getKurralQueryForScan)
+    .catch((err) => {
+        console.error("Unable to scan the table. Error JSON:", JSON.stringify(err, null, 2));
+        // return success('{}');
+    })
+    .then((records) => {
+        return getSortedList(records);
+    });
+    
+    if (kurralItemList.length > 0) {
+        return success(JSON.stringify(kurralItemList));
+    } else {
+        console.error('No Kurral By ID Data found');
+        return success('{}');
+    }
+}
+
 
 async function getKurralByID(id: number) {
  let kurral: ThirukkuralEvaluation;
@@ -108,18 +115,11 @@ function getAllKurral(id: number) {
  };
 }
 
-function getKurral() {
+function getKurral(adikaram: String) {
     return {
         TableName: thirukurralTableName,
-        KeyConditionExpression: "#id > :id",
-        ExpressionAttributeNames: {
-            "#id": "id"
-        },
-        ExpressionAttributeValues: {
-            ":id": 0,
-        }
+        FilterExpression:'adikaram_name = :adikaram_name',
+        ExpressionAttributeValues:{ ":adikaram_name" : adikaram },
+        Limit: 500,
     };
    }
-class KurralInfo {
- id: string;
-}

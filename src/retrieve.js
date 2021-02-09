@@ -36,6 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
+exports.getKurralByIndex = exports.getAllAdikaramJSON = exports.getKurralJSON = exports.adikaramTableName = exports.thirukurralTableName = void 0;
 var aws_sdk_1 = require("aws-sdk");
 var storage_1 = require("./storage");
 exports.thirukurralTableName = process.env['THIRUKKURAL_TABLE_NAME'] || '';
@@ -59,75 +60,102 @@ function getKurralJSON(kurralId) {
     });
 }
 exports.getKurralJSON = getKurralJSON;
+var getSortedList = function (Items) {
+    return Items.sort(function (a, b) {
+        return +a.id - +b.id;
+    });
+};
 function getAllAdikaramJSON() {
     return __awaiter(this, void 0, void 0, function () {
-        var kurral, kurralList, kurralResults, kurralItem, Items, sortedItems, index, element, exception_1;
+        var kurralResults, kurralItem, sortedItems, Items, exception_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    // let kurral: ThirukkuralEvaluation = await getKurralByID();
-                    console.error('Arun is here');
-                    kurralList = new Array();
-                    _a.label = 1;
-                case 1:
-                    _a.trys.push([1, 3, , 4]);
+                    _a.trys.push([0, 2, , 3]);
                     return [4 /*yield*/, dynamoDb.scan({
                             TableName: exports.adikaramTableName
                         }).promise()];
-                case 2:
+                case 1:
                     kurralResults = _a.sent();
                     kurralItem = kurralResults && kurralResults.Items;
+                    sortedItems = void 0;
                     if (kurralItem) {
-                        // kurral = populateThirukkuralEvaluationnModel(kurralItem);
-                        console.log(" Kurral " + kurralResults.Items.length);
                         Items = kurralResults.Items;
-                        sortedItems = Items.sort(function (a, b) {
-                            // console.log('a ' + a + ' b ' + b);
-                            // if (a === "K" || b === "N") {
-                            //     return -1;
-                            // }
-                            // if (a === "N" || b === "K") {
-                            //     return 1;
-                            // }
-                            return +a.id - +b.id;
-                        });
-                        console.log(sortedItems);
-                        for (index = 0; index < sortedItems.length; index++) {
-                            element = sortedItems[index];
-                            kurralList.push(element.adikaram);
-                            // const kuralData =   populateThirukkuralEvaluationnModel(element);
-                            // // if (kurralList.find)
-                            // if (kurralList.length > 0){
-                            //     const kurraalObj = {adikaram: ""};
-                            //     console.log(` kuralData.adikaram_name -> ${ kuralData.adikaram_name } `);
-                            //     const found = kurralList.findIndex(element => element === kuralData.adikaram_name);
-                            //     if (found === -1){
-                            //         // kurraalObj.adikaram = kuralData.adikaram_name.toString();
-                            //         kurralList.push(kuralData.adikaram_name.toString())
-                            //         console.log(` kurralList -> ${ kurralList.length } `);
-                            //     }
-                            // } else {
-                            //     kurralList.push(kuralData.adikaram_name)
-                            //     console.log(` kurralList -> ${ kurralList.length } `);
-                            // }
-                        }
-                        console.log(kurralList);
+                        sortedItems = getSortedList(Items);
                     }
-                    if (kurralList.length > 0) {
-                        return [2 /*return*/, storage_1.success(JSON.stringify(kurralList))];
+                    if (sortedItems.length > 0) {
+                        return [2 /*return*/, storage_1.success(JSON.stringify(sortedItems))];
                     }
                     console.error('No Kurral By ID Data found');
                     return [2 /*return*/, storage_1.success('{}')];
-                case 3:
+                case 2:
                     exception_1 = _a.sent();
                     console.error("Error fetching kurral adikaram from dynamodb - " + exception_1);
                     return [2 /*return*/, storage_1.success('{}')];
-                case 4: return [2 /*return*/];
+                case 3: return [2 /*return*/];
             }
         });
     });
 }
 exports.getAllAdikaramJSON = getAllAdikaramJSON;
+var scanAll = function (params) { return __awaiter(void 0, void 0, void 0, function () {
+    var all, data;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                all = [];
+                _a.label = 1;
+            case 1:
+                if (!true) return [3 /*break*/, 3];
+                return [4 /*yield*/, new Promise(function (resolve, reject) {
+                        dynamoDb.scan(params, function (err, data) {
+                            if (err)
+                                reject(err);
+                            else
+                                resolve(data);
+                        });
+                    })];
+            case 2:
+                data = _a.sent();
+                all = all.concat(data.Items);
+                if (data.LastEvaluatedKey)
+                    params.ExclusiveStartKey = data.LastEvaluatedKey;
+                else
+                    return [3 /*break*/, 3];
+                return [3 /*break*/, 1];
+            case 3: return [2 /*return*/, all];
+        }
+    });
+}); };
+function getKurralByIndex(adikaram_name) {
+    return __awaiter(this, void 0, void 0, function () {
+        var getKurralQueryForScan, kurralItemList;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    getKurralQueryForScan = getKurral(adikaram_name);
+                    return [4 /*yield*/, scanAll(getKurralQueryForScan)["catch"](function (err) {
+                            console.error("Unable to scan the table. Error JSON:", JSON.stringify(err, null, 2));
+                            // return success('{}');
+                        })
+                            .then(function (records) {
+                            return getSortedList(records);
+                        })];
+                case 1:
+                    kurralItemList = _a.sent();
+                    if (kurralItemList.length > 0) {
+                        return [2 /*return*/, storage_1.success(JSON.stringify(kurralItemList))];
+                    }
+                    else {
+                        console.error('No Kurral By ID Data found');
+                        return [2 /*return*/, storage_1.success('{}')];
+                    }
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+exports.getKurralByIndex = getKurralByIndex;
 function getKurralByID(id) {
     return __awaiter(this, void 0, void 0, function () {
         var kurral, getKurralQuery, kurralResults, kurralItem, exception_2;
@@ -167,21 +195,12 @@ function getAllKurral(id) {
         }
     };
 }
-function getKurral() {
+function getKurral(adikaram) {
     return {
         TableName: exports.thirukurralTableName,
-        KeyConditionExpression: "#id > :id",
-        ExpressionAttributeNames: {
-            "#id": "id"
-        },
-        ExpressionAttributeValues: {
-            ":id": 0
-        }
+        FilterExpression: 'adikaram_name = :adikaram_name',
+        ExpressionAttributeValues: { ":adikaram_name": adikaram },
+        Limit: 500
     };
 }
-var KurralInfo = /** @class */ (function () {
-    function KurralInfo() {
-    }
-    return KurralInfo;
-}());
 //# sourceMappingURL=retrieve.js.map

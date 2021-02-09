@@ -36,6 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
+exports.getKurralBasedOnIndex = exports.getAllAdikaram = exports.getKurral = exports.create = void 0;
 var storage_1 = require("./storage");
 var retrieve_1 = require("./retrieve");
 function create(event) {
@@ -86,15 +87,26 @@ function getAllAdikaram(event) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             console.log("event_type=\"API\", action=\"THIRUKURRAL_READ\",\"status=\"Success\",\"msg\"=\" Get Kurral with no JSON.\"");
-            return [2 /*return*/, retrieve_1.getAllAdikaramJSON()
-                // if (kurralList.length > 0){
-                //   return kurralList
-                // } else {
-                //   return error(400, "Invalid Request. Get Kurral request is empty");
-                // }
-            ];
+            return [2 /*return*/, retrieve_1.getAllAdikaramJSON()];
         });
     });
 }
 exports.getAllAdikaram = getAllAdikaram;
+function getKurralBasedOnIndex(event) {
+    return __awaiter(this, void 0, void 0, function () {
+        var adikaram_name;
+        return __generator(this, function (_a) {
+            adikaram_name = event.queryStringParameters ? String(event.queryStringParameters.adikaram_name) : "";
+            if (adikaram_name != "") {
+                return [2 /*return*/, retrieve_1.getKurralByIndex(adikaram_name)];
+            }
+            else {
+                console.log('event_type="API", action="THIRUKURRAL_READ","status="Failed","msg"=" Get Kurral with adikaram name"');
+                return [2 /*return*/, storage_1.error(400, "Invalid Request. Get Kurral request is empty")];
+            }
+            return [2 /*return*/];
+        });
+    });
+}
+exports.getKurralBasedOnIndex = getKurralBasedOnIndex;
 //# sourceMappingURL=handler.js.map
