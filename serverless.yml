@@ -58,7 +58,7 @@ functions:
     handler: src/handler.getKurralBasedOnIndex
     events:
       - http:
-          path: /thirukurral/getKurralListByAdikarm
+          path: /thirukurral/getKurralListByIndex
           method: GET
           cors: true
           private: true

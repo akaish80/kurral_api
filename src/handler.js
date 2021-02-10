@@ -94,11 +94,12 @@ function getAllAdikaram(event) {
 exports.getAllAdikaram = getAllAdikaram;
 function getKurralBasedOnIndex(event) {
     return __awaiter(this, void 0, void 0, function () {
-        var adikaram_name;
+        var beginIndex, endIndex;
         return __generator(this, function (_a) {
-            adikaram_name = event.queryStringParameters ? String(event.queryStringParameters.adikaram_name) : "";
-            if (adikaram_name != "") {
-                return [2 /*return*/, retrieve_1.getKurralByIndex(adikaram_name)];
+            beginIndex = event.queryStringParameters ? Number(event.queryStringParameters.beginIndex) : -1;
+            endIndex = event.queryStringParameters ? Number(event.queryStringParameters.endIndex) : -1;
+            if (beginIndex != -1 && endIndex != -1) {
+                return [2 /*return*/, retrieve_1.getKurralListByAdikarm(beginIndex, endIndex)];
             }
             else {
                 console.log('event_type="API", action="THIRUKURRAL_READ","status="Failed","msg"=" Get Kurral with adikaram name"');

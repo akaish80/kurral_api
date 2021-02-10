@@ -65,8 +65,8 @@ const scanAll = async (params: any) => {
 
 
 
-export async function getKurralListByAdikarm(adikaram_name:String) {
-    let getKurralQueryForScan = getKurral(adikaram_name);
+export async function getKurralListByAdikarm(beginIndex: Number, endIndex: Number) {
+    let getKurralQueryForScan = getKurral(beginIndex, endIndex);
 
     let kurralItemList = await scanAll(getKurralQueryForScan)
     .catch((err) => {
@@ -115,11 +115,14 @@ function getAllKurral(id: number) {
  };
 }
 
-function getKurral(adikaram: String) {
+function getKurral(beginIndex: Number, endIndex: Number) {
     return {
         TableName: thirukurralTableName,
-        FilterExpression:'adikaram_name = :adikaram_name',
-        ExpressionAttributeValues:{ ":adikaram_name" : adikaram },
+        FilterExpression:'id BETWEEN :beginIndex AND :endIndex',
+        ExpressionAttributeValues:{ 
+            ":beginIndex" : beginIndex,
+            ":endIndex" : endIndex,
+         },
         Limit: 500,
     };
    }

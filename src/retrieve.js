@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.getKurralByIndex = exports.getAllAdikaramJSON = exports.getKurralJSON = exports.adikaramTableName = exports.thirukurralTableName = void 0;
+exports.getKurralListByAdikarm = exports.getAllAdikaramJSON = exports.getKurralJSON = exports.adikaramTableName = exports.thirukurralTableName = void 0;
 var aws_sdk_1 = require("aws-sdk");
 var storage_1 = require("./storage");
 exports.thirukurralTableName = process.env['THIRUKKURAL_TABLE_NAME'] || '';
@@ -127,13 +127,13 @@ var scanAll = function (params) { return __awaiter(void 0, void 0, void 0, funct
         }
     });
 }); };
-function getKurralByIndex(adikaram_name) {
+function getKurralListByAdikarm(beginIndex, endIndex) {
     return __awaiter(this, void 0, void 0, function () {
         var getKurralQueryForScan, kurralItemList;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    getKurralQueryForScan = getKurral(adikaram_name);
+                    getKurralQueryForScan = getKurral(beginIndex, endIndex);
                     return [4 /*yield*/, scanAll(getKurralQueryForScan)["catch"](function (err) {
                             console.error("Unable to scan the table. Error JSON:", JSON.stringify(err, null, 2));
                             // return success('{}');
@@ -155,7 +155,7 @@ function getKurralByIndex(adikaram_name) {
         });
     });
 }
-exports.getKurralByIndex = getKurralByIndex;
+exports.getKurralListByAdikarm = getKurralListByAdikarm;
 function getKurralByID(id) {
     return __awaiter(this, void 0, void 0, function () {
         var kurral, getKurralQuery, kurralResults, kurralItem, exception_2;
@@ -195,11 +195,14 @@ function getAllKurral(id) {
         }
     };
 }
-function getKurral(adikaram) {
+function getKurral(beginIndex, endIndex) {
     return {
         TableName: exports.thirukurralTableName,
-        FilterExpression: 'adikaram_name = :adikaram_name',
-        ExpressionAttributeValues: { ":adikaram_name": adikaram },
+        FilterExpression: 'id BETWEEN :beginIndex AND :endIndex',
+        ExpressionAttributeValues: {
+            ":beginIndex": beginIndex,
+            ":endIndex": endIndex
+        },
         Limit: 500
     };
 }

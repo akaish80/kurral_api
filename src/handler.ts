@@ -41,9 +41,10 @@ export async function getAllAdikaram(event: APIGatewayProxyEvent): Promise<APIGa
 }
 
 export async function getKurralBasedOnIndex(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const adikaram_name = event.queryStringParameters ? String(event.queryStringParameters.adikaram_name) : "";
-  if (adikaram_name != ""){
-    return getKurralListByAdikarm(adikaram_name);
+  const beginIndex:number = event.queryStringParameters ? Number(event.queryStringParameters.beginIndex) : -1;
+  const endIndex:number = event.queryStringParameters ? Number(event.queryStringParameters.endIndex) : -1;
+  if (beginIndex != -1 && endIndex != -1){
+    return getKurralListByAdikarm(beginIndex, endIndex);
   } else {
 
     console.log('event_type="API", action="THIRUKURRAL_READ","status="Failed","msg"=" Get Kurral with adikaram name"');
