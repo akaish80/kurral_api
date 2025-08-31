@@ -6,6 +6,7 @@
   "scripts": {
     "build": "npm i && tsc",
     "clean": "rm -rf out node_modules reports .serverless .build",
+    "clean:win": "rmdir /s /q node_modules .serverless",
     "package": "cross-env SLS_DEBUG=* sls package --config ./serverless.package.yml",
     "buildProd": "npm install --omit=dev",
     "deploy": "cross-env SLS_DEBUG=* serverless deploy",
