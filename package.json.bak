@@ -17,11 +17,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.879.0",
-    "@aws-sdk/lib-dynamodb": "^3.879.0",
     "@aws/dynamodb-data-mapper": "^0.7.3",
     "@aws/dynamodb-data-mapper-annotations": "^0.7.3",
-    "request-promise": "^4.2.4"
+    "request-promise": "^4.2.4",
+    "aws-sdk": "^2.1561.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.36",

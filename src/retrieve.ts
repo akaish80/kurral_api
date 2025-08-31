@@ -1,9 +1,9 @@
-import { DynamoDB } from "aws-sdk";
+import { DynamoDBClient, QueryCommand, ScanCommand } from "@aws-sdk/client-dynamodb";
 import { success, ThirukkuralEvaluation, populateThirukkuralEvaluationnModel } from './storage';
 
 export const thirukurralTableName: string = process.env['THIRUKKURAL_TABLE_NAME'] || '';
 export const adikaramTableName: string = process.env['ADIKARAM_TABLE_NAME'] || '';
-const dynamoDb = new DynamoDB.DocumentClient();
+const dynamoDb = new DynamoDBClient({});
 
 export async function getKurralJSON(kurralId: number) {
   let kurral: ThirukkuralEvaluation = await getKurralByID(kurralId);
@@ -21,44 +21,37 @@ const getSortedList = (Items: any[]) => {
 }
 
 export async function getAllAdikaramJSON() {
-    
     try {
-        let kurralResults = await dynamoDb.scan({
-            TableName: adikaramTableName}).promise();
+        const command = new ScanCommand({ TableName: adikaramTableName });
+        let kurralResults = await dynamoDb.send(command);
         let kurralItem = kurralResults && kurralResults.Items;
         let sortedItems;
         if (kurralItem) {
-            const { Items } = kurralResults;
-            sortedItems = getSortedList(Items);
+            sortedItems = getSortedList(kurralItem);
         }
-        if (sortedItems.length > 0) {
-         return success(JSON.stringify(sortedItems));
+        if (sortedItems && sortedItems.length > 0) {
+            return success(JSON.stringify(sortedItems));
         }
         console.error('No Kurral By ID Data found');
         return success('{}');
     } catch (exception) {
         console.error(`Error fetching kurral adikaram from dynamodb - ${exception}`);
-        
         return success('{}');
     }
 }
 
 const scanAll = async (params: any) => {
-    let all:any = [];
+    let all: any = [];
+    let ExclusiveStartKey = undefined;
     while (true) {
-        let data:any = await new Promise((resolve, reject) => {
-            dynamoDb.scan(params, function (err:any, data:any) {
-                if (err)
-                    reject(err);
-                else
-                    resolve(data);
-            });
-        });
-        all = all.concat(data.Items);
-        if (data.LastEvaluatedKey)
-            params.ExclusiveStartKey = data.LastEvaluatedKey;
-        else
+        const command = new ScanCommand({ ...params, ExclusiveStartKey });
+        const data = await dynamoDb.send(command);
+        all = all.concat(data.Items || []);
+        if (data.LastEvaluatedKey) {
+            ExclusiveStartKey = data.LastEvaluatedKey;
+        } else {
             break;
+        }
     }
     return all;
 };
@@ -68,15 +61,13 @@ const scanAll = async (params: any) => {
 export async function getKurralListByAdikarm(beginIndex: Number, endIndex: Number) {
     let getKurralQueryForScan = getKurral(beginIndex, endIndex);
 
-    let kurralItemList = await scanAll(getKurralQueryForScan)
-    .catch((err) => {
+    let kurralItemList: any[] = [];
+    try {
+        const records = await scanAll(getKurralQueryForScan);
+        kurralItemList = getSortedList(records);
+    } catch (err) {
         console.error("Unable to scan the table. Error JSON:", JSON.stringify(err, null, 2));
-        // return success('{}');
-    })
-    .then((records) => {
-        return getSortedList(records);
-    });
-    
+    }
     if (kurralItemList.length > 0) {
         return success(JSON.stringify(kurralItemList));
     } else {
@@ -87,19 +78,20 @@ export async function getKurralListByAdikarm(beginIndex: Number, endIndex: Numbe
 
 
 async function getKurralByID(id: number) {
- let kurral: ThirukkuralEvaluation;
- let getKurralQuery = getAllKurral(id);
- try {
-  let kurralResults = await dynamoDb.query(getKurralQuery).promise();
-  let kurralItem = kurralResults && kurralResults.Items && kurralResults.Items[0];
-  if (kurralItem) {
-   kurral = populateThirukkuralEvaluationnModel(kurralItem);
-  }
-  return kurral;
- } catch (exception) {
-  console.error(`Error fetching kurral from dynamodb - ${exception}`);
-  return kurral;
- }
+    let kurral: ThirukkuralEvaluation;
+    let getKurralQuery = getAllKurral(id);
+    try {
+        const command = new QueryCommand(getKurralQuery);
+        let kurralResults = await dynamoDb.send(command);
+        let kurralItem = kurralResults && kurralResults.Items && kurralResults.Items[0];
+        if (kurralItem) {
+            kurral = populateThirukkuralEvaluationnModel(kurralItem);
+        }
+        return kurral;
+    } catch (exception) {
+        console.error(`Error fetching kurral from dynamodb - ${exception}`);
+        return kurral;
+    }
 }
 
 function getAllKurral(id: number) {

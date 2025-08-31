@@ -1,51 +1,62 @@
-import { DynamoDB } from "aws-sdk";
-import { DataMapper } from "@aws/dynamodb-data-mapper";
-import { attribute, hashKey, table} from "@aws/dynamodb-data-mapper-annotations";
+import { DynamoDBClient, QueryCommand, BatchWriteItemCommand } from "@aws-sdk/client-dynamodb";
 export const thirukurralTableName: string = process.env['THIRUKKURAL_TABLE_NAME'] || '';
-const mapper = new DataMapper({ client: new DynamoDB() });
-const dynamoDb = new DynamoDB.DocumentClient();
+const dynamoDb = new DynamoDBClient({});
 
-export async function createKurral( kurral: ThirukkuralEvaluation[]) {
- const start = new Date().getTime();
- try {
-   if (await readAndDeleteKurral(kurral)) {
-    for await (const persisted of mapper.batchPut(kurral)) {
-     console.log(`event_type="API", action="KURRAL_CREATE",status="Success", promo_key="${persisted.id}",duration_millis="${new Date().getTime() - start}"`);
+export async function createKurral(kurral: ThirukkuralEvaluation[]) {
+    const start = new Date().getTime();
+    try {
+        if (await readAndDeleteKurral(kurral)) {
+            // Batch write (put) items
+            const putRequests = kurral.map(item => ({
+                PutRequest: { Item: marshallKurral(item) }
+            }));
+            const command = new BatchWriteItemCommand({
+                RequestItems: {
+                    [thirukurralTableName]: putRequests
+                }
+            });
+            await dynamoDb.send(command);
+            return success('{"kurallCreation": "success"}');
+        } else {
+            return error(400, "Internal Server Error.");
+        }
+    } catch (exception) {
+        console.error(`Error creating/updating promo data to dynamodb - ${exception}`);
+        console.log(`event_type=\"API\", action=\"TIER_PROMO_CREATE\",status=\"Failed\", duration_millis=\"${new Date().getTime() - start}\"`);
+        throw exception;
     }
-    return success('{"kurallCreation": "success"}');
-   } else {
-     return error(400, "Internal Server Error.");
-   }
- } catch (exception) {
-     console.error(`Error creating/updating promo data to dynamodb - ${exception}`);
-     console.log(`event_type="API", action="TIER_PROMO_CREATE",status="Failed", duration_millis="${new Date().getTime() - start}"`);
-     throw exception;
- }
 }
 
 export async function readAndDeleteKurral(thirukkuralEvaluation: ThirukkuralEvaluation[]) {
- const start = new Date().getTime();
- let allTierQry = getAllKurral(thirukkuralEvaluation[0].id || -1);
- let thrikurralList: ThirukkuralEvaluation[] = [];
- try {
-     let kurralResults = await dynamoDb.query(allTierQry).promise();
-
-     if (kurralResults && kurralResults.Items && kurralResults.Items.length) {
-         kurralResults.Items.forEach((kurralItem: any) => {
-           thrikurralList.push(populateThirukkuralEvaluationnModel(kurralItem));
-         });
-     }
-     if (thrikurralList && thrikurralList.length) {
-         for await (const persisted of mapper.batchDelete(thrikurralList)) {
-             console.log(`event_type="API", action="THIRUKURRAL_DELETE",status="Success", kural_id="${persisted.id}",duration_millis="${new Date().getTime() - start}"`);
-         }
-     }
-     return true;
- } catch (exception) {
-     console.error(`Error deleting promo data in dynamodb - ${exception}`);
-     console.log(`event_type="API", action="THIRUKURRAL_DELETE",status="Failed", duration_millis="${new Date().getTime() - start}"`);
-     return false;
- }
+    const start = new Date().getTime();
+    let allTierQry = getAllKurral(thirukkuralEvaluation[0].id || -1);
+    let thrikurralList: ThirukkuralEvaluation[] = [];
+    try {
+        const command = new QueryCommand(allTierQry);
+        let kurralResults = await dynamoDb.send(command);
+        if (kurralResults && kurralResults.Items && kurralResults.Items.length) {
+            kurralResults.Items.forEach((kurralItem: any) => {
+                thrikurralList.push(populateThirukkuralEvaluationnModel(kurralItem));
+            });
+        }
+        if (thrikurralList && thrikurralList.length) {
+            // Batch delete items
+            const deleteRequests = thrikurralList.map(item => ({
+                DeleteRequest: { Key: { id: { N: String(item.id) } } }
+            }));
+            const batchDeleteCommand = new BatchWriteItemCommand({
+                RequestItems: {
+                    [thirukurralTableName]: deleteRequests
+                }
+            });
+            await dynamoDb.send(batchDeleteCommand);
+        }
+        return true;
+    } catch (exception) {
+        console.error(`Error deleting promo data in dynamodb - ${exception}`);
+        console.log(`event_type=\"API\", action=\"THIRUKURRAL_DELETE\",status=\"Failed\", duration_millis=\"${new Date().getTime() - start}\"`);
+        return false;
+    }
 }
 
 function getAllKurral(id: number) {
@@ -56,59 +67,63 @@ function getAllKurral(id: number) {
          "#id": "id"
      },
      ExpressionAttributeValues: {
-         ":id": id,
+         ":id": { N: String(id) },
      }
  };
 }
 
-@table(thirukurralTableName)
-export class ThirukkuralEvaluation {
- @hashKey()
- id: number | undefined;
- @attribute()
- Line1: string | undefined;
- @attribute()
- Line2: string | undefined;
- @attribute()
- Translation: string | undefined;
- @attribute()
- mv: string | undefined;
- @attribute()
- sp: string | undefined;
- @attribute()
- mk: string | undefined;
- @attribute()
- explanation: string | undefined;
- @attribute()
- couplet: string | undefined;
- @attribute()
- transliteration1: string | undefined;
- @attribute()
- transliteration2: string | undefined;
- @attribute()
- paul_name: string | undefined;
- @attribute()
- paul_transliteration: string | undefined;
- @attribute()
- paul_translation: string | undefined;
- @attribute()
- iyal_name: string | undefined;
- @attribute()
- iyal_transliteration: string | undefined;
- @attribute()
- iyal_translation: string | undefined;
- @attribute()
- adikaram_name: string | undefined;
- @attribute()
- adikaram_transliteration: string | undefined;
- @attribute()
- adikaram_translation: string | undefined;
+export interface ThirukkuralEvaluation {
+    id?: number;
+    Line1?: string;
+    Line2?: string;
+    Translation?: string;
+    mv?: string;
+    sp?: string;
+    mk?: string;
+    explanation?: string;
+    couplet?: string;
+    transliteration1?: string;
+    transliteration2?: string;
+    paul_name?: string;
+    paul_transliteration?: string;
+    paul_translation?: string;
+    iyal_name?: string;
+    iyal_transliteration?: string;
+    iyal_translation?: string;
+    adikaram_name?: string;
+    adikaram_transliteration?: string;
+    adikaram_translation?: string;
+}
+// Helper to marshall ThirukkuralEvaluation to DynamoDB item
+function marshallKurral(kurral: ThirukkuralEvaluation) {
+    const item: any = {};
+    if (kurral.id !== undefined) item.id = { N: String(kurral.id) };
+    if (kurral.Line1 !== undefined) item.Line1 = { S: kurral.Line1 };
+    if (kurral.Line2 !== undefined) item.Line2 = { S: kurral.Line2 };
+    if (kurral.Translation !== undefined) item.Translation = { S: kurral.Translation };
+    if (kurral.mv !== undefined) item.mv = { S: kurral.mv };
+    if (kurral.sp !== undefined) item.sp = { S: kurral.sp };
+    if (kurral.mk !== undefined) item.mk = { S: kurral.mk };
+    if (kurral.explanation !== undefined) item.explanation = { S: kurral.explanation };
+    if (kurral.couplet !== undefined) item.couplet = { S: kurral.couplet };
+    if (kurral.transliteration1 !== undefined) item.transliteration1 = { S: kurral.transliteration1 };
+    if (kurral.transliteration2 !== undefined) item.transliteration2 = { S: kurral.transliteration2 };
+    if (kurral.paul_name !== undefined) item.paul_name = { S: kurral.paul_name };
+    if (kurral.paul_transliteration !== undefined) item.paul_transliteration = { S: kurral.paul_transliteration };
+    if (kurral.paul_translation !== undefined) item.paul_translation = { S: kurral.paul_translation };
+    if (kurral.iyal_name !== undefined) item.iyal_name = { S: kurral.iyal_name };
+    if (kurral.iyal_transliteration !== undefined) item.iyal_transliteration = { S: kurral.iyal_transliteration };
+    if (kurral.iyal_translation !== undefined) item.iyal_translation = { S: kurral.iyal_translation };
+    if (kurral.adikaram_name !== undefined) item.adikaram_name = { S: kurral.adikaram_name };
+    if (kurral.adikaram_transliteration !== undefined) item.adikaram_transliteration = { S: kurral.adikaram_transliteration };
+    if (kurral.adikaram_translation !== undefined) item.adikaram_translation = { S: kurral.adikaram_translation };
+    return item;
 }
 
 export function populateThirukkuralEvaluationnModel(kurralJson: any) {
     // console.log(kurralJson.adikaram_name);
     
- let kurral = new ThirukkuralEvaluation();
+ let kurral: ThirukkuralEvaluation = {};
  kurral.id = kurralJson.id;
  kurral.Line1 = kurralJson.Line1;
  kurral.Line2 = kurralJson.Line2;

@@ -6,7 +6,7 @@ service: kurral-api
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs22.x
   region: ${opt:region,"us-east-2"}
   stage: 'prod'
   environment:
