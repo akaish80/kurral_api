@@ -44,7 +44,7 @@ const scanAll = async (params: any) => {
     let all: any = [];
     let ExclusiveStartKey = undefined;
     while (true) {
-        const command = new ScanCommand({ ...params, ExclusiveStartKey });
+        const command: ScanCommand = new ScanCommand({ ...params, ExclusiveStartKey });
         const data = await dynamoDb.send(command);
         all = all.concat(data.Items || []);
         if (data.LastEvaluatedKey) {
@@ -102,7 +102,7 @@ function getAllKurral(id: number) {
          "#id": "id"
      },
      ExpressionAttributeValues: {
-         ":id": id,
+         ":id": { N: id.toString() },
      }
  };
 }
